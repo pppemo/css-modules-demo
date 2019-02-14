@@ -1,68 +1,94 @@
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+This simple project was built to showcase usage of CSS modules.
 
-## Available Scripts
+## Running
 
-In the project directory, you can run:
+```
+yarn install
+yarn start
+```
 
-### `npm start`
+## Advantages of such approach and gotchas
 
-Runs the app in the development mode.<br>
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+- Available out-of-the-box with CRA2 and `react-scripts` with almost zero-configuration 😍
+- CSS modules take care of scoping
+  - developers create CSS stylesheet in scope of a component only
+  - they **don't have to bother about global naming and possible clashes**
+- It's possible to attach multiple classes to one container using `classnames`
+- Creating a CSS Module is no different then creating any other CSS file
+- The CSS syntax is unchanged - reusability
+- It kinda automates BEM. Outcome is the same, but it's not on a developer to care about proper and unique naming.
+- We're avoiding maintaining long class names, e.g. `MyShadowContainer__spinner--running` - no more complicated BEM names
+- Scalable
 
-The page will reload if you make edits.<br>
-You will also see any lint errors in the console.
+## What happens after running the application
 
-### `npm test`
+`css-loader` translates a CSS sheet into a key-values object, replacing the class name and making it unique, e.g. this CSS sheet:
 
-Launches the test runner in the interactive watch mode.<br>
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+```
+.app {
+  text-align: center;
+}
 
-### `npm run build`
+.app .logo {
+  pointer-events: none;
+}
+```
 
-Builds the app for production to the `build` folder.<br>
-It correctly bundles React in production mode and optimizes the build for the best performance.
+is converted into the following JSON:
 
-The build is minified and the filenames include the hashes.<br>
-Your app is ready to be deployed!
+```
+{
+  app: "App_app__3-MCU",
+  logo: "App_logo__2ICcM
+}
+```
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+Note that class names generated are very similar to the BEM concept, where you have the Block, then Element, but instead Modifier there's a unique suffix, that makes this particular class unique within the scope of entire application. Even if in 10 sheets you'd have class `.logo`.
 
-### `npm run eject`
+The way the class name is being build is fully customizable though.
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+So now that said, doing
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+```
+import styles from './App.module.css'
 
-Instead, it will copy all the configuration files and the transitive dependencies (Webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+...
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+<div className={styles.app}>Test</div>
+```
 
-## Learn More
+will result in rendering
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+```
+<div class="App_app__3-MCU">Test</div>
+```
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+Slick as that.
 
-### Code Splitting
+## We could use SASS as well
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/code-splitting
+I'm not like the biggest fan, and not saying we should use it for everything, but using SASS we could simplify:
 
-### Analyzing the Bundle Size
+```
+.app {
+  text-align: center;
+}
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size
-
-### Making a Progressive Web App
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app
-
-### Advanced Configuration
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/advanced-configuration
-
-### Deployment
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/deployment
-
-### `npm run build` fails to minify
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify
+.app .logo {
+  pointer-events: none;
+}
+```
+into
+```
+.app {
+  text-align: center;
+  .logo {
+    pointer-events: none;
+  }
+}
+```
+which might seem as not such a big win, but I find it pretty useful, when there's more nesting, we're avoiding doing stylesheet like:
+```
+.container .header .leftPane .icon .image {...}
+.container .header .leftPane .icon .text {...}
+```
